@@ -20,3 +20,14 @@ sudo apt install python3
 sudo apt install python3-pip
 ```
 
+# Bot Install 
+
+```
+git clone https://github.com/GamerBoyBK1/co.git
+```
+
+# Enter Pat
+
+```
+cd co
+```
