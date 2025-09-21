@@ -1,3 +1,4 @@
 Fast Install
 
-```` sudo apt update````
+``` sudo apt update
+```
