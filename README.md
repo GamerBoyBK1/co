@@ -31,3 +31,15 @@ git clone https://github.com/GamerBoyBK1/co.git
 ```
 cd co
 ```
+
+# Install Requirement
+
+```
+pip install -r requirements.txt
+```
+
+# Start Bot
+
+```
+python3 main.py
+```
