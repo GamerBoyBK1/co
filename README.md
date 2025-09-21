@@ -17,6 +17,6 @@ sudo apt install python3
 # Python3 Php Install 
 
 ```
-apt install python3-pip
+sudo apt install python3-pip
 ```
 
