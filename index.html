@@ -41,7 +41,7 @@
   }
   button:hover { background: #7c75ff; }
   .qr-box {
-    background: #7200ff; /* Purple background as requested */
+    background: #7200ff;
     border-radius: 12px;
     margin-top: 20px;
     padding: 20px;
@@ -92,6 +92,7 @@
   <br>
   <button onclick="generateQR()">Generate QR</button>
   <button id="downloadBtn" style="display:none;" onclick="downloadQR()">⬇️ Download QR</button>
+  <button id="shareBtn" style="display:none;" onclick="shareQR()">📤 Share QR</button>
   
   <div class="qr-box" id="qrBox" style="display:none;">
     <div class="logo-container">
@@ -111,6 +112,8 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 <script>
 function generateQR() {
   const upi_id = "coramtix@ptaxis";
@@ -126,8 +129,6 @@ function generateQR() {
   const upiLink = `upi://pay?pa=${encodeURIComponent(upi_id)}&pn=${encodeURIComponent(name)}&tn=${encodeURIComponent(note)}&am=${encodeURIComponent(amount)}&cu=INR`;
 
   const canvas = document.getElementById("qrcode");
-  
-  // Clear previous QR code
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   
@@ -145,6 +146,7 @@ function generateQR() {
     } else {
       document.getElementById("qrBox").style.display = "inline-block";
       document.getElementById("downloadBtn").style.display = "inline-block";
+      document.getElementById("shareBtn").style.display = "inline-block";
     }
   });
 
@@ -155,11 +157,10 @@ function generateQR() {
 function downloadQR() {
   const qrBox = document.getElementById("qrBox");
   
-  // Ensure QR code is fully rendered
   setTimeout(() => {
     html2canvas(qrBox, {
       backgroundColor: '#7200ff',
-      scale: 2, // Higher resolution
+      scale: 2,
       useCORS: true,
       logging: false
     }).then(canvas => {
@@ -175,8 +176,36 @@ function downloadQR() {
     });
   }, 100);
 }
+
+async function shareQR() {
+  const qrBox = document.getElementById("qrBox");
+  html2canvas(qrBox, {
+    backgroundColor: '#7200ff',
+    scale: 2,
+    useCORS: true
+  }).then(async canvas => {
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], `CoRamTix_UPI_QR_${Date.now()}.png`, { type: 'image/png' });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: "CoRamTix UPI QR",
+          text: "Scan to pay via UPI 💰",
+          files: [file]
+        });
+      } else {
+        // Fallback: trigger download if share not supported
+        const link = document.createElement("a");
+        link.download = file.name;
+        link.href = URL.createObjectURL(file);
+        link.click();
+      }
+    });
+  }).catch(err => {
+    console.error("Error sharing QR:", err);
+    alert("Sharing failed. Please try again.");
+  });
+}
 </script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 </body>
 </html>
