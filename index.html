@@ -11,6 +11,11 @@
     color: #fff;
     text-align: center;
     padding: 40px;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .container {
     background: rgba(255,255,255,0.1);
@@ -19,43 +24,97 @@
     max-width: 400px;
     margin: auto;
     box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
   }
   input {
     width: 80%;
-    padding: 10px;
+    padding: 12px;
     margin: 8px 0;
     border-radius: 8px;
     border: none;
     outline: none;
     text-align: center;
+    font-size: 16px;
+    background: rgba(255,255,255,0.9);
   }
   button {
     background: #00e676;
     border: none;
     color: #000;
-    padding: 10px 20px;
+    padding: 12px 24px;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    margin-top: 10px;
+    margin: 10px 5px;
+    transition: all 0.3s ease;
+    font-size: 16px;
   }
-  button:hover { background: #1de9b6; }
+  button:hover { 
+    background: #1de9b6; 
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  }
+  button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
   #qr-container {
     position: relative;
     display: inline-block;
     margin-top: 20px;
-  }
-  #bg-image {
     width: 256px;
     height: 256px;
+  }
+  #bg-image {
+    width: 100%;
+    height: 100%;
     border-radius: 20px;
     object-fit: cover;
     position: absolute;
+    top: 0;
+    left: 0;
     z-index: 0;
+    opacity: 0.7;
   }
   #qrcode {
     position: relative;
     z-index: 1;
+    border-radius: 10px;
+  }
+  .button-group {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .instructions {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+    text-align: left;
+    font-size: 14px;
+  }
+  .instructions h3 {
+    margin-top: 0;
+    text-align: center;
+  }
+  .instructions ol {
+    padding-left: 20px;
+  }
+  .instructions li {
+    margin-bottom: 8px;
+  }
+  .hidden {
+    display: none;
+  }
+  .fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>
 </head>
@@ -63,20 +122,34 @@
 
 <div class="container">
   <h2>💰 CoRamTix UPI QR Generator</h2>
-  <input type="number" id="amount" placeholder="Enter Amount (₹)">
+  <input type="number" id="amount" placeholder="Enter Amount (₹)" min="1" step="1">
   <input type="text" id="note" placeholder="Enter Note (e.g. Minecraft Hosting)">
-  <br>
-  <button onclick="generateQR()">Generate QR</button>
-  <button id="downloadBtn" style="display:none;" onclick="downloadQR()">⬇️ Download QR</button>
   
-  <div id="qr-container">
+  <div class="button-group">
+    <button id="generateBtn" onclick="generateQR()">Generate QR</button>
+    <button id="downloadBtn" class="hidden" onclick="downloadQR()">⬇️ Download QR</button>
+  </div>
+  
+  <div id="qr-container" class="hidden fade-in">
     <img id="bg-image" src="https://www.coramtix.in/gamepanel.png" alt="background">
     <canvas id="qrcode"></canvas>
   </div>
-  <p id="upiLink"></p>
+  
+  <p id="upiLink" class="hidden fade-in"></p>
+  
+  <div class="instructions">
+    <h3>How to Use:</h3>
+    <ol>
+      <li>Enter the payment amount</li>
+      <li>Add a note (optional)</li>
+      <li>Click "Generate QR"</li>
+      <li>Scan the QR code with any UPI app</li>
+      <li>Or click the payment link</li>
+    </ol>
+  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 const logoURL = "https://www.coramtix.in/favicon.svg";
 
@@ -86,17 +159,29 @@ function generateQR() {
   const amount = document.getElementById("amount").value;
   const note = document.getElementById("note").value || "Payment";
 
-  if (!amount) {
-    alert("Please enter amount");
+  if (!amount || amount <= 0) {
+    alert("Please enter a valid amount");
     return;
   }
 
-  // ✅ Proper UPI URL Encoding
+  // Generate UPI URL
   const upiLink = `upi://pay?pa=${encodeURIComponent(upi_id)}&pn=${encodeURIComponent(name)}&tn=${encodeURIComponent(note)}&am=${encodeURIComponent(amount)}&cu=INR`;
 
   const canvas = document.getElementById("qrcode");
+  const qrContainer = document.getElementById("qr-container");
+  const downloadBtn = document.getElementById("downloadBtn");
+  const upiLinkElement = document.getElementById("upiLink");
+  const generateBtn = document.getElementById("generateBtn");
 
-  // ✅ Generate clean QR code (transparent light background)
+  // Show loading state
+  generateBtn.disabled = true;
+  generateBtn.textContent = "Generating...";
+
+  // Clear previous QR code
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Generate QR code
   QRCode.toCanvas(canvas, upiLink, {
     width: 256,
     margin: 1,
@@ -105,15 +190,29 @@ function generateQR() {
       light: "#ffffff"
     }
   }, function (error) {
-    if (error) console.error(error);
-    else {
+    if (error) {
+      console.error(error);
+      alert("Error generating QR code. Please try again.");
+      generateBtn.disabled = false;
+      generateBtn.textContent = "Generate QR";
+    } else {
+      // Add logo to QR code
       addLogo(canvas);
-      document.getElementById("downloadBtn").style.display = "inline-block";
+      
+      // Show QR container and download button
+      qrContainer.classList.remove("hidden");
+      downloadBtn.classList.remove("hidden");
+      upiLinkElement.classList.remove("hidden");
+      
+      // Show payment link
+      upiLinkElement.innerHTML = 
+        `<a href="${upiLink}" target="_blank" style="color:#00e676; text-decoration: none; font-weight: bold;">🔗 Pay ₹${amount} Now</a>`;
+      
+      // Reset button
+      generateBtn.disabled = false;
+      generateBtn.textContent = "Generate QR";
     }
   });
-
-  document.getElementById("upiLink").innerHTML = 
-    `<a href="${upiLink}" target="_blank" style="color:#00e676;">🔗 Pay ₹${amount} Now</a>`;
 }
 
 function addLogo(canvas) {
@@ -123,18 +222,22 @@ function addLogo(canvas) {
   logo.src = logoURL;
 
   logo.onload = function() {
-    const logoSize = 60; // logo size
+    const logoSize = 50; // logo size
     const centerX = (canvas.width - logoSize) / 2;
     const centerY = (canvas.height - logoSize) / 2;
 
     // White circle for contrast
     ctx.beginPath();
-    ctx.arc(canvas.width / 2, canvas.height / 2, logoSize / 2 + 10, 0, 2 * Math.PI);
+    ctx.arc(canvas.width / 2, canvas.height / 2, logoSize / 2 + 5, 0, 2 * Math.PI);
     ctx.fillStyle = "#ffffff";
     ctx.fill();
 
     // Draw logo in center
     ctx.drawImage(logo, centerX, centerY, logoSize, logoSize);
+  };
+  
+  logo.onerror = function() {
+    console.warn("Could not load logo, generating QR without logo");
   };
 }
 
@@ -150,15 +253,50 @@ function downloadQR() {
   const bgImg = new Image();
   bgImg.crossOrigin = "anonymous";
   bgImg.src = bg.src;
+  
   bgImg.onload = function() {
+    // Draw background with reduced opacity
+    ctx.globalAlpha = 0.7;
     ctx.drawImage(bgImg, 0, 0, 256, 256);
+    
+    // Draw QR code on top
+    ctx.globalAlpha = 1.0;
     ctx.drawImage(qrCanvas, 0, 0);
+    
+    // Create download link
     const link = document.createElement("a");
-    link.download = `CoRamTix_UPI_QR_${Date.now()}.png`;
+    const amount = document.getElementById("amount").value || "payment";
+    const note = document.getElementById("note").value || "CoRamTix";
+    link.download = `CoRamTix_UPI_QR_${amount}_${note.replace(/\s+/g, '_')}.png`;
     link.href = mergedCanvas.toDataURL("image/png");
     link.click();
-  }
+  };
+  
+  bgImg.onerror = function() {
+    // If background fails to load, just download the QR code
+    const link = document.createElement("a");
+    const amount = document.getElementById("amount").value || "payment";
+    const note = document.getElementById("note").value || "CoRamTix";
+    link.download = `CoRamTix_UPI_QR_${amount}_${note.replace(/\s+/g, '_')}.png`;
+    link.href = qrCanvas.toDataURL("image/png");
+    link.click();
+  };
 }
+
+// Allow Enter key to generate QR
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('amount').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      generateQR();
+    }
+  });
+  
+  document.getElementById('note').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      generateQR();
+    }
+  });
+});
 </script>
 
 </body>
