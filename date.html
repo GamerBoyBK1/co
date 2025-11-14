@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enhanced Day Calculator</title>
+<style>
+    :root {
+        --primary: #4361ee;
+        --primary-dark: #3a56d4;
+        --secondary: #7209b7;
+        --success: #4cc9f0;
+        --light: #f8f9fa;
+        --dark: #212529;
+        --gray: #6c757d;
+        --border-radius: 12px;
+        --box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        --transition: all 0.3s ease;
+    }
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        color: var(--dark);
+    }
+    
+    .container {
+        width: 100%;
+        max-width: 500px;
+    }
+    
+    .calculator-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+        transition: var(--transition);
+    }
+    
+    .calculator-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+    
+    .card-header {
+        background: var(--primary);
+        color: white;
+        padding: 25px 30px;
+        text-align: center;
+    }
+    
+    .card-header h1 {
+        font-size: 1.8rem;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    
+    .card-header p {
+        opacity: 0.9;
+        font-size: 0.95rem;
+    }
+    
+    .card-body {
+        padding: 30px;
+    }
+    
+    .input-group {
+        margin-bottom: 20px;
+    }
+    
+    .input-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--dark);
+    }
+    
+    .input-field {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e1e5ee;
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        transition: var(--transition);
+        background-color: var(--light);
+    }
+    
+    .input-field:focus {
+        outline: none;
+        border-color: var(--primary);
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+    
+    .operation-selector {
+        display: flex;
+        margin-bottom: 20px;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        border: 2px solid #e1e5ee;
+    }
+    
+    .operation-btn {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        background: var(--light);
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: var(--transition);
+    }
+    
+    .operation-btn.active {
+        background: var(--primary);
+        color: white;
+    }
+    
+    .operation-btn:first-child {
+        border-right: 1px solid #e1e5ee;
+    }
+    
+    .calculate-btn {
+        width: 100%;
+        padding: 16px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-top: 10px;
+    }
+    
+    .calculate-btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+    }
+    
+    .result-container {
+        margin-top: 25px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: var(--border-radius);
+        text-align: center;
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    .result-title {
+        color: var(--gray);
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .result-date {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 8px;
+    }
+    
+    .result-days {
+        font-size: 1rem;
+        color: var(--gray);
+    }
+    
+    .history-section {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #e1e5ee;
+    }
+    
+    .history-title {
+        font-size: 1.1rem;
+        margin-bottom: 15px;
+        color: var(--dark);
+        font-weight: 600;
+    }
+    
+    .history-list {
+        list-style: none;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .history-item {
+        padding: 12px 15px;
+        background: var(--light);
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+    }
+    
+    .history-date {
+        font-weight: 500;
+    }
+    
+    .history-days {
+        color: var(--primary);
+        font-weight: 600;
+    }
+    
+    .clear-history {
+        background: none;
+        border: none;
+        color: var(--gray);
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 0.85rem;
+        margin-top: 10px;
+        transition: var(--transition);
+    }
+    
+    .clear-history:hover {
+        color: var(--primary);
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (max-width: 576px) {
+        .card-body {
+            padding: 20px;
+        }
+        
+        .card-header {
+            padding: 20px;
+        }
+        
+        .card-header h1 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <div class="calculator-card">
+            <div class="card-header">
+                <h1>Enhanced Day Calculator</h1>
+                <p>Calculate future or past dates with ease</p>
+            </div>
+            
+            <div class="card-body">
+                <div class="input-group">
+                    <label for="dateInput">Select a Date</label>
+                    <input type="date" id="dateInput" class="input-field">
+                </div>
+                
+                <div class="operation-selector">
+                    <button class="operation-btn active" data-operation="add">Add Days</button>
+                    <button class="operation-btn" data-operation="subtract">Subtract Days</button>
+                </div>
+                
+                <div class="input-group">
+                    <label for="daysInput">Number of Days</label>
+                    <input type="number" id="daysInput" class="input-field" placeholder="Enter number of days" min="0">
+                </div>
+                
+                <button id="calculateBtn" class="calculate-btn">Calculate Date</button>
+                
+                <div id="resultContainer" class="result-container">
+                    <div class="result-title">Calculated Date</div>
+                    <div id="resultDate" class="result-date"></div>
+                    <div id="resultDays" class="result-days"></div>
+                </div>
+                
+                <div class="history-section">
+                    <div class="history-title">Recent Calculations</div>
+                    <ul id="historyList" class="history-list"></ul>
+                    <button id="clearHistory" class="clear-history">Clear History</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('dateInput');
+            const daysInput = document.getElementById('daysInput');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultDate = document.getElementById('resultDate');
+            const resultDays = document.getElementById('resultDays');
+            const operationBtns = document.querySelectorAll('.operation-btn');
+            const historyList = document.getElementById('historyList');
+            const clearHistoryBtn = document.getElementById('clearHistory');
+            
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+            
+            let currentOperation = 'add';
+            let calculationHistory = JSON.parse(localStorage.getItem('dayCalculatorHistory')) || [];
+            
+            // Initialize operation buttons
+            operationBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    operationBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentOperation = this.getAttribute('data-operation');
+                });
+            });
+            
+            // Load calculation history
+            renderHistory();
+            
+            // Calculate button click event
+            calculateBtn.addEventListener('click', calculateDate);
+            
+            // Clear history button
+            clearHistoryBtn.addEventListener('click', clearHistory);
+            
+            // Allow Enter key to trigger calculation
+            daysInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    calculateDate();
+                }
+            });
+            
+            function calculateDate() {
+                const inputDate = dateInput.value;
+                let addDays = parseInt(daysInput.value);
+                
+                if (!inputDate) {
+                    showError("Please select a date!");
+                    return;
+                }
+                
+                if (isNaN(addDays) || addDays < 0) {
+                    showError("Please enter a valid number of days!");
+                    return;
+                }
+                
+                // If subtracting, make days negative
+                if (currentOperation === 'subtract') {
+                    addDays = -addDays;
+                }
+                
+                const date = new Date(inputDate);
+                date.setDate(date.getDate() + addDays);
+                
+                // Format the result date
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const result = date.toLocaleDateString('en-US', options);
+                
+                // Display the result
+                resultDate.textContent = result;
+                
+                const operationText = currentOperation === 'add' ? 'after' : 'before';
+                const absDays = Math.abs(addDays);
+                resultDays.textContent = `${absDays} days ${operationText} ${formatDate(new Date(inputDate))}`;
+                
+                resultContainer.style.display = 'block';
+                
+                // Add to history
+                addToHistory(inputDate, addDays, date.toISOString().split('T')[0]);
+            }
+            
+            function formatDate(date) {
+                return date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+            }
+            
+            function showError(message) {
+                resultDate.textContent = "Error";
+                resultDays.textContent = message;
+                resultContainer.style.display = 'block';
+            }
+            
+            function addToHistory(originalDate, days, resultDate) {
+                const historyItem = {
+                    originalDate,
+                    days,
+                    resultDate,
+                    operation: currentOperation,
+                    timestamp: new Date().toISOString()
+                };
+                
+                calculationHistory.unshift(historyItem);
+                
+                // Keep only the last 5 calculations
+                if (calculationHistory.length > 5) {
+                    calculationHistory = calculationHistory.slice(0, 5);
+                }
+                
+                // Save to localStorage
+                localStorage.setItem('dayCalculatorHistory', JSON.stringify(calculationHistory));
+                
+                // Update the history display
+                renderHistory();
+            }
+            
+            function renderHistory() {
+                historyList.innerHTML = '';
+                
+                if (calculationHistory.length === 0) {
+                    historyList.innerHTML = '<div class="history-item" style="justify-content: center; color: var(--gray);">No calculations yet</div>';
+                    return;
+                }
+                
+                calculationHistory.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'history-item';
+                    
+                    const originalFormatted = formatDate(new Date(item.originalDate));
+                    const resultFormatted = formatDate(new Date(item.resultDate));
+                    
+                    li.innerHTML = `
+                        <div class="history-date">${resultFormatted}</div>
+                        <div class="history-days">${item.operation === 'add' ? '+' : '-'}${Math.abs(item.days)} days</div>
+                    `;
+                    
+                    // Add click event to reuse this calculation
+                    li.addEventListener('click', function() {
+                        dateInput.value = item.originalDate;
+                        daysInput.value = Math.abs(item.days);
+                        
+                        // Set the operation
+                        operationBtns.forEach(btn => {
+                            btn.classList.remove('active');
+                            if (btn.getAttribute('data-operation') === item.operation) {
+                                btn.classList.add('active');
+                                currentOperation = item.operation;
+                            }
+                        });
+                        
+                        // Trigger calculation
+                        calculateDate();
+                    });
+                    
+                    historyList.appendChild(li);
+                });
+            }
+            
+            function clearHistory() {
+                calculationHistory = [];
+                localStorage.removeItem('dayCalculatorHistory');
+                renderHistory();
+            }
+        });
+    </script>
+</body>
+</html>
